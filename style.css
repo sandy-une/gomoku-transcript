@@ -21,6 +21,10 @@ body {
    text-align: center;
 }
 
+.gamespace {
+    background-color: rgb(192, 97, 20);
+}
+
 .gameboard {
     background-color: white;
     margin: 2rem;
@@ -37,12 +41,29 @@ body {
     margin: 0 auto;
 }
 
-.piece {
+.stone {
     width: 2rem;
     height: 2rem;
     border: 1px solid black;
     border-radius: 1rem;
     cursor: pointer;
-    background-color: rgb(201, 200, 200);
+    background-color: red;
+}
 
+.stone.empty {
+    background-color: rgb(55, 206, 17);
+}
+
+.stone.black {
+    background-color: black;
+    cursor: not-allowed;
+}
+
+.stone.white {
+    background-color: white;
+    cursor: not-allowed;
+}
+
+.stone:hover {
+    background-color: yellow;
 }
