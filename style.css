@@ -64,6 +64,6 @@ body {
     cursor: not-allowed;
 }
 
-.stone:hover {
+.stone.empty:hover {
     background-color: yellow;
 }
