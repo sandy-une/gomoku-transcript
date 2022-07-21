@@ -115,10 +115,6 @@ class resetButton {
 
 }
 
-
-//TO DO : flatMap??
-
-
 function playCheck (stoneID: number, stoneStatus: STATUS) {
     //if (stoneCount < 8) return STATUS.EMPTY
     const currentBoardState = gameBoard.rows.map((x)=>x.stones).flat().map((y)=>y.status)
