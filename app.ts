@@ -15,7 +15,6 @@ class Stone {
         this.element = document.createElement('div')
         this.element.classList.add('stone')
         this.element.classList.add(this.status.toLowerCase())
-        //this.element.classList.add(this.status.toLowerCase())
         this.element.addEventListener('click', () => {
             this.handleClick()
         })
@@ -62,7 +61,7 @@ class Board {
     selectedStones: number[] = []
     element: HTMLDivElement
 
-    constructor(rowNumber: number) {          //Square Board
+    constructor(rowNumber: number) {
         this.rows = Array.from({length: rowNumber}).map((_, index) => {
             return new Row(index, rowNumber)
         })
@@ -76,11 +75,15 @@ class Board {
     }
 }
 
+/***
+ * Generates player turn indications, and functions to change it
+ */
+
 class playerName {
     element: HTMLDivElement
     constructor() {
         const p = document.createElement('p')
-        p.textContent = "Player: WHITE"
+        p.textContent = "Player: BLACK"
         this.element = document.createElement('div')
         this.element.classList.add('playerTurn')
         this.element.append(p)
@@ -93,7 +96,9 @@ class playerName {
     }
 
 }
-
+/***
+ * Generates reset button and reset functionality
+ */
 class resetButton {
     element: HTMLDivElement
     constructor() {
@@ -107,13 +112,22 @@ class resetButton {
 
     handleClick() {
         gameBoard.resetState()
-        currentPlayer.changeEndState("Player: WHITE")
-        playerTurn = 0
+        currentPlayer.changeEndState("Player: BLACK")
+        playerTurn = 1
         stoneCount = 0
         document.getElementById('gameSpace')?.classList.remove("locked")
     }
 
 }
+
+/********
+ * Generates an array of all board pieces to check whether a winning state has been reached.
+ * Inputs:
+ *    stoneID = ID of latest stone;
+ *    status - STATUS of current stone (white or black);
+ * Returns:
+ *    BLACK, WHITE or EMPTY - STATUS of winning piece, or EMPTY if no winner.
+ *********/
 
 function playCheck (stoneID: number, stoneStatus: STATUS) {
     //if (stoneCount < 8) return STATUS.EMPTY
@@ -132,33 +146,34 @@ function playCheck (stoneID: number, stoneStatus: STATUS) {
 }
 
 /********
- * Function: stoneCounter;
  * Takes the prodivded stone and checks for number of same colour connecting stones;
  * Inputs:
- *   stoneID - ID of current stone;
+ *   stoneID - ID of latest stone placed on board;
  *   stoneStatus - STATUS of current stone (white or black);
  *   direction:
  *       1 - Horizontal
  *       2 - Vertical
  *       3 - Diagonal Foward
  *       4 - Diagonal Backward
+ * Returns:
+ *       0 - No winner
+ *       1 - Winner
+ *       2 - Loser (greater than five connected)
  *********/
 
 function stoneCounter (stoneID: number, stoneStatus: STATUS, currentBoardState: STATUS[], direction: number) {
     var stepSize:number = 0
     switch(direction) {
-        case 1: stepSize = 1; break;
-        case 2: stepSize = boardSize; break;
-        case 3: stepSize = boardSize - 1; break;
-        case 4: stepSize = boardSize + 1; break;
+        case 1: stepSize = 1; break;  //Horizontal
+        case 2: stepSize = boardSize; break; //Vertical
+        case 3: stepSize = boardSize - 1; break; //Diagonal Forward
+        case 4: stepSize = boardSize + 1; break; //Diagonal Backward
     }
     var statusCount = 1
     //Count Upwards/Left
     var counter = 0
     var newID = stoneID
-
     const rowCheckStart = stoneID - (stoneID % boardSize)
-
     var rowCheckUpwards = rowCheckStart
 
     while (counter < 5) {
@@ -176,8 +191,8 @@ function stoneCounter (stoneID: number, stoneStatus: STATUS, currentBoardState: 
     //Count Downwards/Right
     counter = 0
     newID = stoneID
- 
    var rowCheckDownwards = rowCheckStart + boardSize
+
     while (counter < 5) {
         newID = newID + stepSize
         if(direction != 1) rowCheckDownwards = rowCheckDownwards + boardSize
@@ -196,15 +211,19 @@ function stoneCounter (stoneID: number, stoneStatus: STATUS, currentBoardState: 
 
 }
 
+/********
+ * Updates the player turn indicator, and displays win/draw messages;
+ * On win / draw, locks game  board from future moves
+ * Inputs:
+ *   status - STATUS of current stone (white or black);
+ * Returns: Nil
+ *********/
 function updateGameState (status: STATUS) {
-
     stoneCount++
-
     if (status === STATUS.EMPTY) {
         playerTurn = playerTurn === 0 ? 1 : 0
         currentPlayer.changeEndState("Player: " + (playerTurn===0? "WHITE" : "BLACK"))
-    }
-    else {
+    } else {
         currentPlayer.changeEndState((status===STATUS.WHITE? "WHITE" : "BLACK") + " WINS !!!")
         document.getElementById('gameSpace')?.classList.add("locked")
     }
@@ -213,17 +232,22 @@ function updateGameState (status: STATUS) {
         currentPlayer.changeEndState("DRAW - No spaces left")
         document.getElementById('gameSpace')?.classList.add("locked")
     }
-
     return
 }
 
+
+/***
+ * Initialisation variables and object builders
+ */
+
 var boardSize = 11
+
 const gameBoard = new Board(boardSize)
 const currentPlayer = new playerName()
 const userButton = new resetButton()
-var playerTurn = 0
-var stoneCount = 0
 const stoneTotal = boardSize * boardSize
+var playerTurn = 1
+var stoneCount = 0
 
 document.getElementById('gameSpace')?.appendChild(gameBoard.element)
 document.getElementById('functionality')?.appendChild(userButton.element)
