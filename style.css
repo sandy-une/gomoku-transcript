@@ -21,8 +21,12 @@ body {
    text-align: center;
 }
 
-.gamespace {
-    background-color: rgb(192, 97, 20);
+.gameSpace {
+    margin-left: auto;
+    margin-right:auto;
+}
+.gameSpace.locked {
+    pointer-events: none;
 }
 
 .gameboard {
@@ -31,8 +35,8 @@ body {
     display: flex;
     flex-direction: column;
     row-gap: 0.5rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    padding: 0.5rem;
+    width: fit-content;
 }
 
 .row {
@@ -66,4 +70,21 @@ body {
 
 .stone.empty:hover {
     background-color: yellow;
+}
+.button {
+    background-color: darkkhaki;
+    border: 1px;
+    padding: 0.5rem 5rem;
+    text-align: center;
+    display: inline-block;
+    font-size: 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: rgb(223, 216, 126);
+}
+.button:active {
+    background-color:rgb(131, 127, 74);
 }

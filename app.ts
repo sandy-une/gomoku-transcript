@@ -1,5 +1,3 @@
-import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript"
-
 enum STATUS {
     EMPTY = "EMPTY",
     WHITE = "WHITE",
@@ -23,17 +21,19 @@ class Stone {
         })
     }
 
-
     handleClick() {
         if (this.status != STATUS.EMPTY) return
         this.element.classList.remove(this.status.toLowerCase())
         this.status = playerTurn === 0 ? STATUS.WHITE : STATUS.BLACK
         this.element.classList.add(this.status.toLowerCase())
-        console.log("Returned state: " + playCheck(this.id, this.status))
-        playerTurn = playerTurn === 0 ? 1 : 0
-        stoneCount++
+        updateGameState(playCheck(this.id, this.status))
     }
 
+    resetState() {
+        this.element.classList.remove(this.status.toLowerCase())
+        this.status = STATUS.EMPTY
+        this.element.classList.add(this.status.toLowerCase())
+    }
 }
 
 class Row {
@@ -52,6 +52,9 @@ class Row {
         this.element.append(...this.stones.map((stone) => stone.element))
     }
 
+    resetState() {
+        this.stones.forEach((x) => x.resetState())
+    }
 }
 
 class Board {
@@ -68,14 +71,56 @@ class Board {
         this.element.append(...this.rows.map((row) => row.element))
     }
 
+    resetState() {
+        this.rows.forEach ( (element) => element.resetState())
+    }
 }
+
+class playerName {
+    element: HTMLDivElement
+    constructor() {
+        const p = document.createElement('p')
+        p.textContent = "Player: WHITE"
+        this.element = document.createElement('div')
+        this.element.classList.add('playerTurn')
+        this.element.append(p)
+    }
+
+    changeEndState(newOutcome: string) {
+        var q = document.createElement('p')
+        q.textContent = newOutcome
+        this.element.replaceChildren(q)
+    }
+
+}
+
+class resetButton {
+    element: HTMLDivElement
+    constructor() {
+        this.element = document.createElement('div')
+        this.element.classList.add('button')
+        this.element.append("Reset")
+        this.element.addEventListener('click', () => {
+            this.handleClick()
+        })
+    }
+
+    handleClick() {
+        gameBoard.resetState()
+        currentPlayer.changeEndState("Player: WHITE")
+        playerTurn = 0
+        stoneCount = 0
+        document.getElementById('gameSpace')?.classList.remove("locked")
+    }
+
+}
+
 
 //TO DO : flatMap??
 
 
 function playCheck (stoneID: number, stoneStatus: STATUS) {
-    console.log("triggered playCheck function")
-    //if (stoneCount < 10) return
+    //if (stoneCount < 8) return STATUS.EMPTY
     const currentBoardState = gameBoard.rows.map((x)=>x.stones).flat().map((y)=>y.status)
     var check = 0
     var loopCounter = 1
@@ -83,9 +128,6 @@ function playCheck (stoneID: number, stoneStatus: STATUS) {
         check = stoneCounter(stoneID, stoneStatus,currentBoardState, loopCounter)
         loopCounter++
     }
-
-    console.log("Final loop counter value should be 5: " + loopCounter)
-    console.log("Final Check Count 0=PlayOn 1=WIN 2=LOSE: " + check)
 
     if (check === 1) return stoneStatus
     else if (check === 2 && stoneStatus === STATUS.WHITE) return STATUS.BLACK
@@ -107,7 +149,6 @@ function playCheck (stoneID: number, stoneStatus: STATUS) {
  *********/
 
 function stoneCounter (stoneID: number, stoneStatus: STATUS, currentBoardState: STATUS[], direction: number) {
-    const stoneTotal = boardSize * boardSize
     var stepSize:number = 0
     switch(direction) {
         case 1: stepSize = 1; break;
@@ -116,13 +157,19 @@ function stoneCounter (stoneID: number, stoneStatus: STATUS, currentBoardState: 
         case 4: stepSize = boardSize + 1; break;
     }
     var statusCount = 1
-    //Count Upwards
+    //Count Upwards/Left
     var counter = 0
     var newID = stoneID
 
-    while(counter < 5) {
+    const rowCheckStart = stoneID - (stoneID % boardSize)
+
+    var rowCheckUpwards = rowCheckStart
+
+    while (counter < 5) {
         newID = newID - stepSize
-        if (newID < 0) break
+        if(direction != 1) rowCheckUpwards = rowCheckUpwards - boardSize
+        if (newID < 0) break;
+        if (newID < rowCheckUpwards) break;
         if (currentBoardState[newID] === stoneStatus) { 
             statusCount++ 
         }
@@ -130,13 +177,18 @@ function stoneCounter (stoneID: number, stoneStatus: STATUS, currentBoardState: 
         counter++
     }
 
+    //Count Downwards/Right
     counter = 0
     newID = stoneID
-    while(counter < 5) {
+ 
+   var rowCheckDownwards = rowCheckStart + boardSize
+    while (counter < 5) {
         newID = newID + stepSize
+        if(direction != 1) rowCheckDownwards = rowCheckDownwards + boardSize
         if (newID >= stoneTotal) break;
-        if (currentBoardState[newID] === stoneStatus) {
-            statusCount++
+        if (newID > rowCheckDownwards) break;
+        if (currentBoardState[newID] === stoneStatus) { 
+            statusCount++ 
         }
         else break;
         counter++
@@ -148,10 +200,35 @@ function stoneCounter (stoneID: number, stoneStatus: STATUS, currentBoardState: 
 
 }
 
+function updateGameState (status: STATUS) {
 
-console.log("Starting Build")
-var boardSize = 8
+    stoneCount++
+
+    if (status === STATUS.EMPTY) {
+        playerTurn = playerTurn === 0 ? 1 : 0
+        currentPlayer.changeEndState("Player: " + (playerTurn===0? "WHITE" : "BLACK"))
+    }
+    else {
+        currentPlayer.changeEndState((status===STATUS.WHITE? "WHITE" : "BLACK") + " WINS !!!")
+        document.getElementById('gameSpace')?.classList.add("locked")
+    }
+     
+    if (stoneCount >= stoneTotal) {
+        currentPlayer.changeEndState("DRAW - No spaces left")
+        document.getElementById('gameSpace')?.classList.add("locked")
+    }
+
+    return
+}
+
+var boardSize = 11
 const gameBoard = new Board(boardSize)
+const currentPlayer = new playerName()
+const userButton = new resetButton()
 var playerTurn = 0
 var stoneCount = 0
+const stoneTotal = boardSize * boardSize
+
 document.getElementById('gameSpace')?.appendChild(gameBoard.element)
+document.getElementById('functionality')?.appendChild(userButton.element)
+document.getElementById('functionality')?.appendChild(currentPlayer.element)
